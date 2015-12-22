@@ -22,7 +22,7 @@ public class Main {
         context.addServlet(new ServletHolder(allRequestsServlet), "/*");
         context.addServlet(new ServletHolder(mirrorRequestsServlet), "/mirror");
 
-        Server server = new Server(8081);
+        Server server = new Server(8080);
         server.setHandler(context);
 
         server.start();
