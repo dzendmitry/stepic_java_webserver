@@ -1,6 +1,8 @@
 package servlets;
 
 import accounts.AccountService;
+import accounts.UserProfile;
+import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,24 +28,88 @@ public class UsersServlet extends HttpServlet {
     //get public user profile
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
-        //todo: module 2 home work
+        String sessionId = request.getSession().getId();
+        UserProfile profile = accountService.getUserBySessionId(sessionId);
+        if (profile == null) {
+            response.getWriter().println("Unauthorized");
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        } else {
+            Gson gson = new Gson();
+            String json = gson.toJson(profile);
+            response.setContentType("text/html;charset=utf-8");
+            response.getWriter().println(json);
+            response.setStatus(HttpServletResponse.SC_OK);
+        }
     }
 
     //sign up
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
-        //todo: module 2 home work
+        if (accountService.getUserBySessionId(request.getSession().getId()) != null) {
+            response.getWriter().println("Authorized");
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
+
+        String login = request.getParameter("login");
+        String pass = request.getParameter("password");
+
+        if (login == null || pass == null) {
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        UserProfile profile = new UserProfile(login, pass, login);
+        accountService.addNewUser(profile);
+
+        response.getWriter().println("Registered");
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     //change profile
     public void doPut(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
-        //todo: module 2 home work
+        String sessionId = request.getSession().getId();
+        UserProfile profile = accountService.getUserBySessionId(sessionId);
+        if (profile == null) {
+            response.getWriter().println("Unauthorized");
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        String login = request.getParameter("login");
+        String pass = request.getParameter("password");
+        if (login == null || pass == null) {
+            response.getWriter().println("Bad request");
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        accountService.deleteLogin(login);
+        accountService.addNewUser(new UserProfile(login, pass, login));
+        response.getWriter().println("Profile changed");
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     //unregister
     public void doDelete(HttpServletRequest request,
                          HttpServletResponse response) throws ServletException, IOException {
-        //todo: module 2 home work
+        String sessionId = request.getSession().getId();
+        UserProfile profile = accountService.getUserBySessionId(sessionId);
+        if (profile == null) {
+            response.getWriter().println("Unauthorized");
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+        accountService.deleteLogin(profile.getLogin());
+        response.getWriter().println("Unregistered");
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 }

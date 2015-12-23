@@ -38,4 +38,6 @@ public class AccountService {
     public void deleteSession(String sessionId) {
         sessionIdToProfile.remove(sessionId);
     }
+
+    public void deleteLogin(String login) { loginToProfile.remove(login); }
 }
